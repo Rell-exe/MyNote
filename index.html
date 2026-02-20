@@ -3,18 +3,23 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>My Notes App</title>
+    <title>Advanced Notes App</title>
     <link rel="stylesheet" href="style.css">
 </head>
 <body>
 
     <div class="container">
-        <h1>📝 My Notes</h1>
+        <header>
+            <h1>📝 My Smart Notes</h1>
+            <button id="toggleTheme">🌙</button>
+        </header>
 
         <div class="input-area">
             <textarea id="noteInput" placeholder="Tulis catatanmu di sini..."></textarea>
             <button onclick="addNote()">Tambah Catatan</button>
         </div>
+
+        <input type="text" id="searchInput" placeholder="🔍 Cari catatan..." onkeyup="searchNotes()">
 
         <div id="notesContainer" class="notes"></div>
     </div>
