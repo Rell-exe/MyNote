@@ -27,28 +27,35 @@ function addNote() {
         createdAt: new Date().toLocaleString()
     };
 
-    notes.unshift(newNote);
+    notes.unshift(newNote); // Menambahkan catatan baru di paling atas
     saveNotes(notes);
     input.value = "";
     loadNotes();
 }
 
-function loadNotes() {
+// Memisahkan fungsi render agar bisa dipakai ulang oleh pencarian
+function renderNotes(notesToRender) {
     const container = document.getElementById("notesContainer");
     container.innerHTML = "";
 
-    const notes = getNotes();
+    if (notesToRender.length === 0) {
+        container.innerHTML = `<div class="empty-state">Belum ada catatan yang ditemukan.</div>`;
+        return;
+    }
 
-    notes.forEach(note => {
+    notesToRender.forEach(note => {
         const div = document.createElement("div");
         div.className = "note";
 
+        // Mencegah XSS ringan dengan escapeHTML (opsional namun disarankan)
+        const safeContent = note.content.replace(/</g, "&lt;").replace(/>/g, "&gt;");
+
         div.innerHTML = `
-            <div>${note.content}</div>
+            <div class="note-content">${safeContent}</div>
             <div class="note-time">🕒 ${note.createdAt}</div>
             <div class="actions">
-                <button onclick="editNote(${note.id})">Edit</button>
-                <button class="delete" onclick="deleteNote(${note.id})">Hapus</button>
+                <button onclick="editNote(${note.id})">✏️ Edit</button>
+                <button class="delete" onclick="deleteNote(${note.id})">🗑️ Hapus</button>
             </div>
         `;
 
@@ -56,11 +63,18 @@ function loadNotes() {
     });
 }
 
+function loadNotes() {
+    renderNotes(getNotes());
+}
+
 function deleteNote(id) {
-    let notes = getNotes();
-    notes = notes.filter(note => note.id !== id);
-    saveNotes(notes);
-    loadNotes();
+    // Menambahkan konfirmasi sebelum menghapus
+    if (confirm("Apakah kamu yakin ingin menghapus catatan ini?")) {
+        let notes = getNotes();
+        notes = notes.filter(note => note.id !== id);
+        saveNotes(notes);
+        loadNotes();
+    }
 }
 
 function editNote(id) {
@@ -85,32 +99,30 @@ function searchNotes() {
         note.content.toLowerCase().includes(keyword)
     );
 
-    const container = document.getElementById("notesContainer");
-    container.innerHTML = "";
-
-    filtered.forEach(note => {
-        const div = document.createElement("div");
-        div.className = "note";
-        div.innerHTML = `
-            <div>${note.content}</div>
-            <div class="note-time">🕒 ${note.createdAt}</div>
-            <div class="actions">
-                <button onclick="editNote(${note.id})">Edit</button>
-                <button class="delete" onclick="deleteNote(${note.id})">Hapus</button>
-            </div>
-        `;
-        container.appendChild(div);
-    });
+    renderNotes(filtered);
 }
 
-document.getElementById("toggleTheme").addEventListener("click", () => {
+// Menangani Tema
+const themeBtn = document.getElementById("toggleTheme");
+
+themeBtn.addEventListener("click", () => {
     document.body.classList.toggle("light");
-    localStorage.setItem("theme", document.body.classList.contains("light") ? "light" : "dark");
+    const isLight = document.body.classList.contains("light");
+    
+    localStorage.setItem("theme", isLight ? "light" : "dark");
+    updateThemeIcon(isLight);
 });
 
 function loadTheme() {
     const theme = localStorage.getItem("theme");
-    if (theme === "light") {
+    const isLight = theme === "light";
+    
+    if (isLight) {
         document.body.classList.add("light");
     }
+    updateThemeIcon(isLight);
+}
+
+function updateThemeIcon(isLight) {
+    themeBtn.textContent = isLight ? "☀️" : "🌙";
 }
